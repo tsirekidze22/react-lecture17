@@ -1,151 +1,78 @@
-import { useState } from "react";
 import "./App.css";
-import axios from "axios";
-import { Eye, EyeOff } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { schema } from "./Validations/LoginValidation";
 
 function App() {
-  // const [email, setEmail] = useState("");
-  // const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
-  const [isPasswordShown, setIsPasswordShown] = useState(false);
-
-  const [validationErrors, setValidationErrors] = useState({
-    email: "",
-    password: "",
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+    mode: "onBlur",
   });
+  // console.log(form);
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
-  const validateInput = (name, value) => {
-    switch (name) {
-      case "email":
-        if (value === "") return "Email is required";
-        else if (!value.includes("@")) return "Email must include @";
-        else return "";
-      case "password":
-        if (value === "") return "Password is required";
-        else if (value.length < 8)
-          return "Password must be at least 8 characters long";
-        else return "";
-      default:
-        return "";
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    // name: email/password
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setValidationErrors((prev) => ({
-      ...prev,
-      [name]: validateInput(name, value),
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {
-      email: validateInput("email", form.email),
-      password: validateInput("password", form.password),
-    };
-
-    setValidationErrors(newErrors);
-
-    const errorsArr = Object.values(newErrors);
-    const hasErrors = errorsArr.some((message) => message !== "");
-
-    if (hasErrors) {
-      setError("მინიმუმ ერთი ველი ცარიელია, გთხოვთ შეავსოთ ყველა ველი.");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await axios.post("/login", form);
-      setSuccess("Successfull Login...");
-    } catch (error) {
-      setError("Something went wrong");
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = (data) => {
+    console.log("Submitted!", data);
+    reset({
+      email: "",
+      password: "",
+    });
   };
 
   return (
     <>
       <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 max-w-[300px] mt-10 mx-auto w-full"
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col gap-8 max-w-[300px] mt-10 mx-auto w-full"
       >
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter Email..."
-          value={form.email}
-          onChange={handleChange}
-          // onChange={(e) => handleChange(e)}
-          className="border border-stone-400 rounded-md px-3 w-full"
-        />
-        {validationErrors.email && (
-          <p className="text-red-500 rounded-sm">{validationErrors.email}</p>
-        )}
         <div className="relative">
           <input
-            type={isPasswordShown ? "text" : "password"}
-            name="password"
-            placeholder="Enter Password..."
-            value={form.password}
-            onChange={handleChange}
-            className="border border-stone-400 rounded-md px-3 w-full"
+            type="email"
+            placeholder="Enter Email..."
+            {...register("email")}
+            //  {...register("email", {
+            //   required: "იმეილი არის სავალდებულო ველი",
+            //   validate: (value) => {
+            //     if (!value.includes("@")) {
+            //       return "იმეილი უნდა შეიცავდეს @ სიმბოლოს";
+            //     }
+            //     return true;
+            //   },
+            // })}
+            className="border border-stone-400 rounded-md px-4 py-2 w-full"
           />
-          <div className=" absolute top-[0px] right-[10px]">
-            {isPasswordShown ? (
-              <EyeOff
-                color="#000000"
-                onClick={() => setIsPasswordShown(false)}
-              />
-            ) : (
-              <Eye color="#000000" onClick={() => setIsPasswordShown(true)} />
-            )}
-          </div>
+          {errors.email && (
+            <p className="text-red-500 text-[12px] px-2 absolute top-[-10px] left-5 bg-white">
+              {errors.email.message}
+            </p>
+          )}
         </div>
-
-        {validationErrors.password && (
-          <p className="text-red-500 rounded-sm">{validationErrors.password}</p>
-        )}
-        {isLoading && <p>Loading...</p>}
-        {error && (
-          <p className="border border-red-500 px-3 text-red-500 rounded-sm">
-            {error}
-          </p>
-        )}
-        {success && (
-          <p className="border border-green-500 px-3 text-green-500 rounded-sm">
-            {success}
-          </p>
-        )}
+        <div className="relative">
+          <input
+            type={"password"}
+            placeholder="Enter Password..."
+            {...register("password")}
+            // {...register("password", {
+            //   required: "პაროლი არის სავალდებულო ველი",
+            // })}
+            className="border border-stone-400 rounded-md px-4 py-2 w-full"
+          />
+          {errors.password && (
+            <p className="text-red-500 text-[12px] px-2 absolute top-[-10px] left-5 bg-white">
+              {errors.password.message}
+            </p>
+          )}
+        </div>
         <button
-          // type="submit"
-          // onClick={handleSubmit}
+          type="submit"
           className="text-white bg-blue-400 rounded-md px-4 py-1 cursor-pointer"
         >
           Send
         </button>
-        {/* <button
-          type="button"
-          className="text-white bg-blue-400 rounded-md px-4 py-1 cursor-pointer"
-        >
-          cancel
-        </button> */}
       </form>
     </>
   );
