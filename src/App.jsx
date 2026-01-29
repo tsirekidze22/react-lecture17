@@ -53,7 +53,20 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("form submitted!");
+    const newErrors = {
+      email: validateInput("email", form.email),
+      password: validateInput("password", form.password),
+    };
+
+    setValidationErrors(newErrors);
+
+    const errorsArr = Object.values(newErrors);
+    const hasErrors = errorsArr.some((message) => message !== "");
+
+    if (hasErrors) {
+      setError("მინიმუმ ერთი ველი ცარიელია, გთხოვთ შეავსოთ ყველა ველი.");
+      return;
+    }
 
     setIsLoading(true);
 
@@ -133,7 +146,6 @@ function App() {
         >
           cancel
         </button> */}
-        {console.log("form data:", form)}
       </form>
     </>
   );
